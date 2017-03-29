@@ -352,5 +352,7 @@ I stole embedding processing overlay idea from the Alex Staravoitau blog. This i
  
 Here's a [link to my video result](./project_video_annotated.mp4)
 
+###Reflections
 
+This is an interesting project illustrating computer vision techniques for finding lanes; however the algorithm is not robust enough to work in all the conditions. The procedure worked properly on project video but not on challenge and harder challenge video. I had fun working on the project unlike the deep learning project where every thing is a black box. I'm sure i will have more fun working on the vehicle detection project which is an extension of this one.  
 
