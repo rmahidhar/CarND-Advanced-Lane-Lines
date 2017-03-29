@@ -1,4 +1,4 @@
-#**Advanced Lane Finding Project**
+##**Advanced Lane Finding Project**
 
 The goals / steps of this project are the following:
 
@@ -103,7 +103,7 @@ Distortion correction applied to one of the test image
 ![alt text][image2]
 
 
-###Pipeline 
+##Pipeline 
 
 I used a combination of color and gradient thresholds to generate a binary image for detecting the lanes.
 
