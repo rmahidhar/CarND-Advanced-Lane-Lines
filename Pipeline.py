@@ -72,9 +72,7 @@ class GradientPipeline(object):
         self.kernel = 3
 
         self.direction_threshold = (0.7, 1.3)
-        #self.magnitude_threshold = (20, 100)
         self.magnitude_threshold = (50, 255)
-        #self.absolute_threshold = (20, 100)
         self.absolute_threshold = (100, 200)
         self.color_threshold = (170, 255)
 
