@@ -42,11 +42,29 @@ def direction_sobel_threshold(image, kernel=3, thresh=(0, np.pi / 2)):
     return binary_output
 
 
-def color_threshold(image, thresh=(0, 255)):
-    binary_output = np.zeros_like(image)
-    binary_output[(image > thresh[0]) & (image <= thresh[1])] = 1
-    return binary_output
+#def color_threshold(image, thresh=(0, 255)):
+#    binary_output = np.zeros_like(image)
+#    binary_output[(image > thresh[0]) & (image <= thresh[1])] = 1
+#    return binary_output
 
+def color_threshold(image):
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+
+    yellow_min = np.array([15, 100, 120], np.uint8)
+    yellow_max = np.array([80, 255, 255], np.uint8)
+    yellow_mask = cv2.inRange(image, yellow_min, yellow_max)
+
+    white_min = np.array([0, 0, 200], np.uint8)
+    white_max = np.array([255, 30, 255], np.uint8)
+    white_mask = cv2.inRange(image, white_min, white_max)
+
+    binary_output = np.zeros_like(image[:, :, 0])
+    binary_output[((yellow_mask != 0) | (white_mask != 0))] = 1
+
+    filtered = image
+    filtered[((yellow_mask == 0) & (white_mask == 0))] = 0
+
+    return binary_output
 
 class GradientPipeline(object):
     def __init__(self):
@@ -54,18 +72,20 @@ class GradientPipeline(object):
         self.kernel = 3
 
         self.direction_threshold = (0.7, 1.3)
-        self.magnitude_threshold = (20, 100)
-        self.absolute_threshold = (20, 100)
+        #self.magnitude_threshold = (20, 100)
+        self.magnitude_threshold = (50, 255)
+        #self.absolute_threshold = (20, 100)
+        self.absolute_threshold = (100, 200)
         self.color_threshold = (170, 255)
 
-        self.magnitude_min = 20
-        self.magnitude_max = 100
-
         self.s_channel = 2
+        self.r_channel = 0
 
     def __call__(self, image, stacked=False):
-        hls = cv2.cvtColor(np.copy(image), cv2.COLOR_RGB2HLS).astype(np.float)
-        chan = hls[:, :, self.s_channel]
+        #hls = cv2.cvtColor(np.copy(image), cv2.COLOR_RGB2HLS).astype(np.float)
+        #chan = hls[:, :, self.s_channel]
+        # Get red channel from the image
+        chan = image[:, :, self.r_channel]
         # apply sobel threshold on saturation channel
         absx = absolute_sobel_threshold(chan, kernel=self.kernel, orient='x', thresh=self.absolute_threshold)
         absy = absolute_sobel_threshold(chan, kernel=self.kernel, orient='y', thresh=self.absolute_threshold)
@@ -73,8 +93,10 @@ class GradientPipeline(object):
         direction = direction_sobel_threshold(chan, kernel=self.kernel, thresh=self.direction_threshold)
         gradient = np.zeros_like(chan)
         gradient[((absx == 1) & (absy == 1)) | ((magnitude == 1) & (direction == 1))] = 1
+        #gradient[((magnitude == 1) & (direction == 1))] = 1
         # apply color threshold mask
-        color = color_threshold(chan, thresh=self.color_threshold)
+        #color = color_threshold(chan, thresh=self.color_threshold)
+        color = color_threshold(image)
         if stacked:
             return np.dstack((np.zeros_like(chan), gradient, color))
         else:

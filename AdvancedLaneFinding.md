@@ -352,6 +352,10 @@ I stole embedding processing overlay idea from the Alex Staravoitau blog. This i
  
 Here's a [link to my video result](./project_video_annotated.mp4)
 
+###Discussion 
+
+I started with the procedure discussed in the course videos and got a good results; however i observed in the videos the lane markings were significantly off from their true positions, typically when there was shadowing or change in road surface. The use of R and V channels instead of just S channel improved the lane markings significantly, i still see at few places the marking are bit off but not that significant. I understood the importance of relaying more on color channels and less on the gradients. The solution can be further improved by selecting the lanes based on the curvature, distance between the lines in addition to the coefficients averaging.
+
 ###Reflections
 
 This is an interesting project illustrating computer vision techniques for finding lanes; however the algorithm is not robust enough to work in all the conditions. The procedure worked properly on project video but not on challenge and harder challenge video. I had fun working on the project unlike the deep learning project where every thing is a black box. I'm sure i will have more fun working on the vehicle detection project which is an extension of this one.  
