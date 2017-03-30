@@ -157,8 +157,21 @@ def direction_sobel_threshold(image, kernel=3, thresh=(0, np.pi / 2)):
 
 * Color Threshold
 ```python
-    hls = cv2.cvtColor(np.copy(image), cv2.COLOR_RGB2HLS).astype(np.float)
-    chan = hls[:, :, 2]
+def color_threshold(image):
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+
+    yellow_min = np.array([15, 100, 120], np.uint8)
+    yellow_max = np.array([80, 255, 255], np.uint8)
+    yellow_mask = cv2.inRange(image, yellow_min, yellow_max)
+
+    white_min = np.array([0, 0, 200], np.uint8)
+    white_max = np.array([255, 30, 255], np.uint8)
+    white_mask = cv2.inRange(image, white_min, white_max)
+
+    binary_output = np.zeros_like(image[:, :, 0])
+    binary_output[((yellow_mask != 0) | (white_mask != 0))] = 1
+
+    return binary_output
 ```
 
 * Applying Gradient and Color Threshold
@@ -169,27 +182,22 @@ class GradientPipeline(object):
         self.kernel = 3
 
         self.direction_threshold = (0.7, 1.3)
-        self.magnitude_threshold = (20, 100)
-        self.absolute_threshold = (20, 100)
-        self.color_threshold = (170, 255)
+        self.magnitude_threshold = (50, 255)
+        self.absolute_threshold = (100, 200)
 
-        self.magnitude_min = 20
-        self.magnitude_max = 100
-
-        self.s_channel = 2
+        self.r_channel = 0
 
     def __call__(self, image, stacked=False):
-        hls = cv2.cvtColor(np.copy(image), cv2.COLOR_RGB2HLS).astype(np.float)
-        chan = hls[:, :, self.s_channel]
-        # apply sobel threshold on saturation channel
+        # Get red channel from the image
+        chan = image[:, :, self.r_channel]
+        # apply sobel threshold on red channel
         absx = absolute_sobel_threshold(chan, kernel=self.kernel, orient='x', thresh=self.absolute_threshold)
         absy = absolute_sobel_threshold(chan, kernel=self.kernel, orient='y', thresh=self.absolute_threshold)
         magnitude = magnitude_sobel_threshold(chan, kernel=self.kernel, thresh=self.magnitude_threshold)
         direction = direction_sobel_threshold(chan, kernel=self.kernel, thresh=self.direction_threshold)
         gradient = np.zeros_like(chan)
         gradient[((absx == 1) & (absy == 1)) | ((magnitude == 1) & (direction == 1))] = 1
-        # apply color threshold mask
-        color = color_threshold(chan, thresh=self.color_threshold)
+        color = color_threshold(image)
         if stacked:
             return np.dstack((np.zeros_like(chan), gradient, color))
         else:
@@ -264,13 +272,14 @@ I now have a thresholded warped image and ready to map out the lane lines! There
     import Pipeline
     import ImagePlotter
     
-    plotter = ImagePlotter.ImagePlotter(2, grid=(1,2), figsize=(24, 9))
+    plotter = ImagePlotter.ImagePlotter(3, grid=(1,3), figsize=(24, 9))
     image = matplotlib.image.imread('test_images/test1.jpg')
     image = calibrate(image)
     plotter(image, 'original image')
-    image = Pipeline.pipeline(image)[0]
+    image = Pipeline.GradientWarpPipeline()(image)
+    plotter(image, 'pipeline')
     histogram = np.sum(image[image.shape[0]/2:,:], axis=0)
-    plt.plot(histogram)    
+    plt.plot(histogram)  
     ```
 ![alt text][image6]
 
